@@ -1,0 +1,59 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}Products{% endblock %}
+{% block heading %}Product Management{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item active">Products</li>{% endblock %}
+{% block content %}
+<div class="col-12">
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                {% if 'product.manage' in user_perms %}<a href="/product/formcreate" class="btn btn-sm btn-primary mb-1"><i class="fas fa-plus"></i> Add Product</a>{% else %}<span></span>{% endif %}
+                <form action="/product/" method="get" class="form-inline">
+                    <select name="category" class="form-control form-control-sm mr-1 mb-1" onchange="this.form.submit()">
+                        <option value="">All categories</option>
+                        {% for c in categories %}<option value="{{ c.pk }}" {% if filters.category == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                    </select>
+                    <select name="status" class="form-control form-control-sm mr-1 mb-1" onchange="this.form.submit()">
+                        <option value="">Any status</option>
+                        <option value="Active" {% if filters.status == 'Active' %}selected{% endif %}>Active</option>
+                        <option value="Discontinued" {% if filters.status == 'Discontinued' %}selected{% endif %}>Discontinued</option>
+                    </select>
+                    <div class="input-group input-group-sm mb-1" style="width: 220px;">
+                        <input type="text" name="keyword" value="{{ keyword }}" class="form-control js-barcode-search" placeholder="Search SKU / name / barcode">
+                        <div class="input-group-append"><button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card-body table-responsive p-0">
+            <table class="table table-hover text-nowrap">
+                <thead><tr>
+                    <th>{% sort_link 'sku' 'SKU' %}</th><th>{% sort_link 'name' 'Name' %}</th><th>{% sort_link 'category' 'Category' %}</th>
+                    <th>UoM</th><th class="text-right">{% sort_link 'cost' 'Cost' %}</th><th class="text-right">{% sort_link 'price' 'Price' %}</th>
+                    <th class="text-right">{% sort_link 'stock' 'On hand' %}</th><th>Reorder</th><th>Tracking</th><th>{% sort_link 'status' 'Status' %}</th><th>Action</th>
+                </tr></thead>
+                <tbody>
+                {% for p in page %}
+                    <tr>
+                        <td><b>{{ p.sku }}</b></td><td>{{ p.name }}{% if p.barcode %}<br><small class="text-muted"><i class="fas fa-barcode"></i> {{ p.barcode }}</small>{% endif %}</td>
+                        <td>{{ p.category.name }}</td><td>{{ p.unit_of_measure }}</td>
+                        <td class="text-right">{{ p.cost_price }}</td><td class="text-right">{{ p.selling_price }}</td>
+                        <td class="text-right">{{ p.on_hand|default:0 }}</td><td>{{ p.reorder_level }}</td>
+                        <td>{% if p.is_batch_tracked %}<span class="badge badge-info">Batch</span>{% endif %} {% if p.is_expiry_tracked %}<span class="badge badge-warning">Expiry</span>{% endif %}</td>
+                        <td>{{ p.status|status_badge }}</td>
+                        <td>
+                            {% if 'product.manage' in user_perms %}
+                            <a href="/product/edit/{{ p.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i> Edit</a>
+                            <a href="#" onclick="confirmDelete('/product/delete/{{ p.pk }}')" class="btn btn-sm btn-danger ml-1"><i class="fas fa-trash"></i> Delete</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}<tr><td colspan="11" class="text-center text-muted p-4">No products found.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "pages/_pagination.html" %}
+    </div>
+</div>
+{% endblock %}

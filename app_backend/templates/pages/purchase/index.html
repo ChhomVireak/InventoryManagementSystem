@@ -1,0 +1,26 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}Purchase Orders{% endblock %}
+{% block heading %}Purchase Orders{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item active">Purchase orders</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card">
+    <div class="card-header"><div class="d-flex align-items-center justify-content-between flex-wrap">
+        {% if 'po.create' in user_perms %}<a href="/purchase/formcreate" class="btn btn-sm btn-primary mb-1"><i class="fas fa-plus"></i> New Purchase Order</a>{% else %}<span></span>{% endif %}
+        <form method="get" class="form-inline">
+            <select name="status" class="form-control form-control-sm mr-1 mb-1" onchange="this.form.submit()"><option value="">Any status</option>{% for s in statuses %}<option {% if filters.status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+            <select name="supplier" class="form-control form-control-sm mr-1 mb-1" onchange="this.form.submit()"><option value="">All suppliers</option>{% for s in suppliers %}<option value="{{ s.pk }}" {% if filters.supplier == s.pk|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select>
+            <div class="input-group input-group-sm mb-1" style="width: 200px;"><input type="text" name="keyword" value="{{ keyword }}" class="form-control" placeholder="Search">
+            <div class="input-group-append"><button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button></div></div></form>
+    </div></div>
+    <div class="card-body table-responsive p-0"><table class="table table-hover text-nowrap">
+        <thead><tr><th>{% sort_link 'number' 'PO number' %}</th><th>{% sort_link 'supplier' 'Supplier' %}</th><th>{% sort_link 'date' 'Order date' %}</th><th>Expected</th><th class="text-right">{% sort_link 'total' 'Total' %}</th><th>{% sort_link 'status' 'Status' %}</th><th></th></tr></thead>
+        <tbody>{% for o in page %}<tr>
+            <td><b>{{ o.po_number }}</b></td><td>{{ o.supplier.name }}</td><td>{{ o.order_date|date:'d-m-Y' }}</td><td>{{ o.expected_date|date:'d-m-Y'|default:'-' }}</td>
+            <td class="text-right">{{ o.total_amount }}</td><td>{{ o.status|status_badge }}</td>
+            <td><a href="/purchase/{{ o.pk }}/" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i> Open</a></td>
+        </tr>{% empty %}<tr><td colspan="7" class="text-center text-muted p-4">No purchase orders.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% include "pages/_pagination.html" %}
+</div></div>
+{% endblock %}

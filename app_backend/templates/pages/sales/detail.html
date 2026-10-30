@@ -1,0 +1,38 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}{{ so.so_number }}{% endblock %}
+{% block heading %}{{ so.so_number }} {{ so.status|status_badge }}{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/sales/">Sales orders</a></li><li class="breadcrumb-item active">{{ so.so_number }}</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card"><div class="card-body">
+    <dl class="row">
+        <dt class="col-sm-2">Customer</dt><dd class="col-sm-4">{{ so.customer }}</dd>
+        <dt class="col-sm-2">Created by</dt><dd class="col-sm-4">{{ so.created_by }}</dd>
+        <dt class="col-sm-2">Order date</dt><dd class="col-sm-4">{{ so.order_date|date:'d-m-Y' }}</dd>
+        <dt class="col-sm-2">Delivery date</dt><dd class="col-sm-4">{{ so.delivery_date|date:'d-m-Y'|default:'-' }}</dd>
+        <dt class="col-sm-2">Notes</dt><dd class="col-sm-10">{{ so.notes|default:'-' }}</dd>
+    </dl>
+    <table class="table table-sm"><thead class="thead-light"><tr><th>SKU</th><th>Product</th><th class="text-right">Ordered</th><th class="text-right">Shipped</th><th class="text-right">Unit price</th><th class="text-right">Line total</th></tr></thead>
+        <tbody>{% for i in items %}<tr><td>{{ i.product.sku }}</td><td>{{ i.product.name }}</td><td class="text-right">{{ i.quantity_ordered }}</td>
+            <td class="text-right {% if i.quantity_shipped >= i.quantity_ordered %}text-success{% endif %}">{{ i.quantity_shipped }}</td><td class="text-right">{{ i.unit_price }}</td><td class="text-right">{{ i.line_total }}</td></tr>{% endfor %}</tbody>
+        <tfoot><tr><td colspan="5" class="text-right">Subtotal</td><td class="text-right">{{ so.subtotal }}</td></tr>
+            <tr><td colspan="5" class="text-right">Discount</td><td class="text-right">- {{ so.discount_amount }}</td></tr>
+            <tr><td colspan="5" class="text-right">Tax</td><td class="text-right">{{ so.tax_amount }}</td></tr>
+            <tr><th colspan="5" class="text-right">Total</th><th class="text-right">{{ so.total_amount }}</th></tr></tfoot></table>
+    <div class="mt-3">
+        {% if so.status == 'Draft' and 'so.create' in user_perms %}
+            <a href="/sales/edit/{{ so.pk }}" class="btn btn-primary"><i class="fas fa-edit"></i> Edit</a>
+            <form method="post" action="/sales/{{ so.pk }}/confirm" class="d-inline">{% csrf_token %}<button class="btn btn-success"><i class="fas fa-check"></i> Confirm order</button></form>
+        {% endif %}
+        {% if so.status == 'Confirmed' and 'so.dispatch' in user_perms %}<a href="/sales/{{ so.pk }}/dispatch" class="btn btn-success"><i class="fas fa-truck"></i> Dispatch goods</a>{% endif %}
+        {% if so.status == 'Shipped' and 'so.dispatch' in user_perms %}<form method="post" action="/sales/{{ so.pk }}/deliver" class="d-inline">{% csrf_token %}<button class="btn btn-success"><i class="fas fa-check-double"></i> Mark delivered</button></form>{% endif %}
+        {% if so.status == 'Shipped' or so.status == 'Delivered' or so.status == 'Confirmed' %}
+            {% if 'return.process' in user_perms %}<a href="/returns/new?type=SALES_RETURN&order={{ so.so_number }}" class="btn btn-outline-warning"><i class="fas fa-undo"></i> Sales return</a>{% endif %}
+        {% endif %}
+        {% if so.status == 'Draft' or so.status == 'Confirmed' %}{% if 'so.create' in user_perms %}<form method="post" action="/sales/{{ so.pk }}/cancel" class="d-inline" data-confirm="Cancel this sales order?">{% csrf_token %}<button class="btn btn-outline-danger">Cancel order</button></form>{% endif %}{% endif %}
+        {% if so.status == 'Draft' and 'so.create' in user_perms %}<a href="#" onclick="confirmDelete('/sales/delete/{{ so.pk }}')" class="btn btn-outline-danger"><i class="fas fa-trash"></i> Delete</a>{% endif %}
+        <a href="/sales/" class="btn btn-secondary ml-2">Back</a>
+    </div>
+    {% if dispatches %}<h6 class="mt-4">Dispatches</h6><ul>{% for t in dispatches %}<li><a href="/stock/transactions/{{ t.pk }}/">#{{ t.pk }}</a> - {{ t.warehouse }} - {{ t.transaction_date|date:'d-m-Y H:i' }} by {{ t.user }}</li>{% endfor %}</ul>{% endif %}
+</div></div></div>
+{% endblock %}

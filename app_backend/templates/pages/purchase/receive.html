@@ -1,0 +1,26 @@
+{% extends "index.html" %}
+{% block page_title %}Receive goods{% endblock %}
+{% block heading %}Receive goods - {{ po.po_number }}{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/purchase/">Purchase orders</a></li><li class="breadcrumb-item"><a href="/purchase/{{ po.pk }}/">{{ po.po_number }}</a></li><li class="breadcrumb-item active">Receive</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card card-success">
+    <div class="card-header"><h3 class="card-title">Supplier: {{ po.supplier }}</h3></div>
+    <form method="post" action="/purchase/{{ po.pk }}/receive">{% csrf_token %}
+    <div class="card-body">
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+        <div class="form-group" style="max-width: 320px;"><label>Receiving warehouse <span class="text-danger">*</span></label>
+            <select name="warehouse" class="form-control" required><option value="">---------</option>
+            {% for w in warehouses %}<option value="{{ w.pk }}" {% if posted.warehouse == w.pk|stringformat:'s' %}selected{% endif %}>{{ w.name }}</option>{% endfor %}</select></div>
+        <table class="table table-sm"><thead class="thead-light"><tr><th>Product</th><th class="text-right">Ordered</th><th class="text-right">Received</th><th class="text-right">Remaining</th><th style="width:130px">Receive now</th><th>Batch no.</th><th>Expiry date</th></tr></thead>
+        <tbody>{% for i in items %}<tr>
+            <td>{{ i.product }}{% if i.product.is_batch_tracked %} <span class="badge badge-info">Batch</span>{% endif %}{% if i.product.is_expiry_tracked %} <span class="badge badge-warning">Expiry</span>{% endif %}</td>
+            <td class="text-right">{{ i.quantity_ordered }}</td><td class="text-right">{{ i.quantity_received }}</td><td class="text-right">{{ i.remaining }}</td>
+            <td><input type="number" min="0" max="{{ i.remaining }}" name="qty_{{ i.pk }}" value="{{ i.remaining }}" class="form-control form-control-sm text-right" {% if not i.remaining %}disabled{% endif %}></td>
+            <td>{% if i.product.is_batch_tracked or i.product.is_expiry_tracked %}<input type="text" name="batch_{{ i.pk }}" class="form-control form-control-sm" placeholder="required">{% else %}<span class="text-muted">-</span>{% endif %}</td>
+            <td>{% if i.product.is_expiry_tracked %}<input type="date" name="expiry_{{ i.pk }}" class="form-control form-control-sm">{% else %}<span class="text-muted">-</span>{% endif %}</td>
+        </tr>{% endfor %}</tbody></table>
+    </div>
+    <div class="card-footer"><button class="btn btn-success"><i class="fas fa-check"></i> Confirm receipt</button> <a href="/purchase/{{ po.pk }}/" class="btn btn-secondary ml-2">Cancel</a></div>
+    </form>
+</div></div>
+{% endblock %}

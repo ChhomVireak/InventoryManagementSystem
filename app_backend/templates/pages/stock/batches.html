@@ -1,0 +1,24 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}Batches &amp; Expiry{% endblock %}
+{% block heading %}Batches &amp; Expiry{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/stock/">Stock</a></li><li class="breadcrumb-item active">Batches</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card">
+    <div class="card-header"><div class="d-flex align-items-center justify-content-end flex-wrap">
+        <form method="get" class="form-inline">
+            <select name="state" class="form-control form-control-sm mr-1 mb-1" onchange="this.form.submit()"><option value="">All batches</option><option value="soon" {% if state == 'soon' %}selected{% endif %}>Expiring in 30 days</option><option value="expired" {% if state == 'expired' %}selected{% endif %}>Expired</option></select>
+            <select name="warehouse" class="form-control form-control-sm mr-1 mb-1" onchange="this.form.submit()"><option value="">All warehouses</option>{% for w in warehouses %}<option value="{{ w.pk }}" {% if filters.warehouse == w.pk|stringformat:'s' %}selected{% endif %}>{{ w.name }}</option>{% endfor %}</select>
+            <div class="input-group input-group-sm mb-1" style="width: 200px;"><input type="text" name="keyword" value="{{ keyword }}" class="form-control" placeholder="Search batch / SKU">
+            <div class="input-group-append"><button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button></div></div></form>
+    </div></div>
+    <div class="card-body table-responsive p-0"><table class="table table-hover text-nowrap">
+        <thead><tr><th>{% sort_link 'product' 'Product' %}</th><th>{% sort_link 'batch' 'Batch' %}</th><th>{% sort_link 'warehouse' 'Warehouse' %}</th><th>{% sort_link 'expiry' 'Expiry' %}</th><th class="text-right">{% sort_link 'qty' 'Qty' %}</th><th>State</th></tr></thead>
+        <tbody>{% for b in page %}<tr>
+            <td>{{ b.product }}</td><td>{{ b.batch_number }}</td><td>{{ b.warehouse.name }}</td><td>{{ b.expiry_date|date:'d-m-Y'|default:'-' }}</td><td class="text-right">{{ b.quantity_on_hand }}</td>
+            <td>{% if b.is_expired %}<span class="badge badge-danger">Expired - blocked from dispatch</span>{% elif b.expiry_date %}<span class="badge badge-success">OK</span>{% else %}-{% endif %}</td>
+        </tr>{% empty %}<tr><td colspan="6" class="text-center text-muted p-4">No batches.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% include "pages/_pagination.html" %}
+</div></div>
+{% endblock %}

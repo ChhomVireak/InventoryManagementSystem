@@ -1,0 +1,63 @@
+{% extends "index.html" %}
+{% load static ims_tags %}
+{% block page_title %}Dashboard{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item active">Dashboard</li>{% endblock %}
+{% block content %}
+<div class="col-lg-3 col-6"><div class="small-box bg-info"><div class="inner"><h3>{{ product_count }}</h3><p>Active Products</p></div>
+    <div class="icon"><i class="fas fa-box"></i></div><a href="/product/" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a></div></div>
+<div class="col-lg-3 col-6"><div class="small-box bg-success"><div class="inner"><h3>{{ stock_value|floatformat:2 }}</h3><p>Inventory Value (at cost)</p></div>
+    <div class="icon"><i class="fas fa-coins"></i></div><a href="/stock/" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a></div></div>
+<div class="col-lg-3 col-6"><div class="small-box bg-warning"><div class="inner"><h3>{{ low_stock_count }}</h3><p>Low-stock Products</p></div>
+    <div class="icon"><i class="fas fa-exclamation-triangle"></i></div><a href="/stock/?low=1" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a></div></div>
+<div class="col-lg-3 col-6"><div class="small-box bg-danger"><div class="inner"><h3>{{ expiring_count }}</h3><p>Expired / Expiring Batches</p></div>
+    <div class="icon"><i class="fas fa-hourglass-end"></i></div><a href="/stock/batches/?state=soon" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a></div></div>
+
+<div class="col-lg-3 col-6"><div class="info-box"><span class="info-box-icon bg-primary"><i class="fas fa-warehouse"></i></span><div class="info-box-content"><span class="info-box-text">Warehouses</span><span class="info-box-number">{{ warehouse_count }}</span></div></div></div>
+<div class="col-lg-3 col-6"><div class="info-box"><span class="info-box-icon bg-secondary"><i class="fas fa-shopping-cart"></i></span><div class="info-box-content"><span class="info-box-text">Open purchase orders</span><span class="info-box-number">{{ open_po }}</span></div></div></div>
+<div class="col-lg-3 col-6"><div class="info-box"><span class="info-box-icon bg-secondary"><i class="fas fa-cash-register"></i></span><div class="info-box-content"><span class="info-box-text">Open sales orders</span><span class="info-box-number">{{ open_so }}</span></div></div></div>
+<div class="col-lg-3 col-6"><div class="info-box"><span class="info-box-icon bg-info"><i class="fas fa-tasks"></i></span><div class="info-box-content"><span class="info-box-text">Pending approvals</span><span class="info-box-number">{{ pending_approvals }}</span></div></div></div>
+
+<div class="col-lg-8"><div class="card"><div class="card-header"><h3 class="card-title">Stock movement - last 7 days (units)</h3></div>
+    <div class="card-body"><canvas id="moveChart" style="height: 260px;"></canvas></div></div></div>
+<div class="col-lg-4"><div class="card"><div class="card-header"><h3 class="card-title">Top products by quantity</h3></div>
+    <div class="card-body"><canvas id="topChart" style="height: 260px;"></canvas></div></div></div>
+
+<div class="col-lg-6"><div class="card"><div class="card-header"><h3 class="card-title">Low-stock alerts</h3></div>
+    <div class="card-body table-responsive p-0"><table class="table table-sm">
+        <thead><tr><th>Product</th><th class="text-right">On hand</th><th class="text-right">Reorder level</th></tr></thead>
+        <tbody>{% for p in low_stock %}<tr><td>{{ p.sku }} - {{ p.name }}</td><td class="text-right text-danger font-weight-bold">{{ p.total }}</td><td class="text-right">{{ p.reorder_level }}</td></tr>
+        {% empty %}<tr><td colspan="3" class="text-center text-muted p-3">All products are above their reorder level.</td></tr>{% endfor %}</tbody></table></div></div></div>
+<div class="col-lg-6"><div class="card"><div class="card-header"><h3 class="card-title">Expiry alerts</h3></div>
+    <div class="card-body table-responsive p-0"><table class="table table-sm">
+        <thead><tr><th>Product / batch</th><th>Warehouse</th><th>Expiry</th><th class="text-right">Qty</th></tr></thead>
+        <tbody>{% for b in expiring %}<tr><td>{{ b.product.sku }} / {{ b.batch_number }}</td><td>{{ b.warehouse.name }}</td>
+            <td>{{ b.expiry_date|date:'d-m-Y' }} {% if b.is_expired %}<span class="badge badge-danger">expired</span>{% endif %}</td><td class="text-right">{{ b.quantity_on_hand }}</td></tr>
+        {% empty %}<tr><td colspan="4" class="text-center text-muted p-3">No batches expiring soon.</td></tr>{% endfor %}</tbody></table></div></div></div>
+
+<div class="col-12"><div class="card"><div class="card-header"><h3 class="card-title">Recent stock movements</h3><div class="card-tools"><a href="/stock/transactions/" class="btn btn-tool">View ledger</a></div></div>
+    <div class="card-body table-responsive p-0"><table class="table table-sm">
+        <thead><tr><th>When</th><th>Type</th><th>Warehouse</th><th>Product</th><th class="text-right">Qty</th><th>User</th></tr></thead>
+        <tbody>{% for l in recent_lines %}<tr><td>{{ l.transaction.transaction_date|date:'d-m-Y H:i' }}</td><td>{{ l.transaction.transaction_type }}</td><td>{{ l.transaction.warehouse.name }}</td><td>{{ l.product }}</td>
+            <td class="text-right {% if l.quantity > 0 %}text-success{% else %}text-danger{% endif %}">{{ l.quantity|stringformat:'+d' }}</td><td>{{ l.transaction.user.username }}</td></tr>
+        {% empty %}<tr><td colspan="6" class="text-center text-muted p-3">No stock movements yet.</td></tr>{% endfor %}</tbody></table></div></div></div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
+<script>
+    var move = JSON.parse('{{ chart_json|escapejs }}');
+    new Chart(document.getElementById('moveChart'), {
+        type: 'bar',
+        data: {labels: move.labels, datasets: [
+            {label: 'Stock in', backgroundColor: '#28a745', data: move.in},
+            {label: 'Stock out', backgroundColor: '#ffc107', data: move.out}]},
+        options: {maintainAspectRatio: false, scales: {yAxes: [{ticks: {beginAtZero: true}}]}}
+    });
+    var topData = JSON.parse('{{ top_json|escapejs }}');
+    new Chart(document.getElementById('topChart'), {
+        type: 'doughnut',
+        data: {labels: topData.labels, datasets: [{data: topData.data, backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6c757d']}]},
+        options: {maintainAspectRatio: false, legend: {position: 'bottom'}}
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}{{ po.po_number }}{% endblock %}
+{% block heading %}{{ po.po_number }} {{ po.status|status_badge }}{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/purchase/">Purchase orders</a></li><li class="breadcrumb-item active">{{ po.po_number }}</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card"><div class="card-body">
+    <dl class="row">
+        <dt class="col-sm-2">Supplier</dt><dd class="col-sm-4">{{ po.supplier }}</dd>
+        <dt class="col-sm-2">Created by</dt><dd class="col-sm-4">{{ po.created_by }}</dd>
+        <dt class="col-sm-2">Order date</dt><dd class="col-sm-4">{{ po.order_date|date:'d-m-Y' }}</dd>
+        <dt class="col-sm-2">Expected</dt><dd class="col-sm-4">{{ po.expected_date|date:'d-m-Y'|default:'-' }}</dd>
+        <dt class="col-sm-2">Notes</dt><dd class="col-sm-10">{{ po.notes|default:'-' }}</dd>
+    </dl>
+    <table class="table table-sm"><thead class="thead-light"><tr><th>SKU</th><th>Product</th><th class="text-right">Ordered</th><th class="text-right">Received</th><th class="text-right">Unit price</th><th class="text-right">Line total</th></tr></thead>
+        <tbody>{% for i in items %}<tr><td>{{ i.product.sku }}</td><td>{{ i.product.name }}</td><td class="text-right">{{ i.quantity_ordered }}</td>
+            <td class="text-right {% if i.quantity_received >= i.quantity_ordered %}text-success{% endif %}">{{ i.quantity_received }}</td><td class="text-right">{{ i.unit_price }}</td><td class="text-right">{{ i.line_total }}</td></tr>{% endfor %}</tbody>
+        <tfoot><tr><td colspan="5" class="text-right">Subtotal</td><td class="text-right">{{ po.subtotal }}</td></tr>
+            <tr><td colspan="5" class="text-right">Discount</td><td class="text-right">- {{ po.discount_amount }}</td></tr>
+            <tr><th colspan="5" class="text-right">Total</th><th class="text-right">{{ po.total_amount }}</th></tr></tfoot></table>
+    <div class="mt-3">
+        {% if po.status == 'Draft' %}
+            {% if 'po.create' in user_perms %}<a href="/purchase/edit/{{ po.pk }}" class="btn btn-primary"><i class="fas fa-edit"></i> Edit</a>{% endif %}
+            {% if 'po.approve' in user_perms %}<form method="post" action="/purchase/{{ po.pk }}/approve" class="d-inline">{% csrf_token %}<button class="btn btn-success"><i class="fas fa-check"></i> Approve &amp; send</button></form>{% endif %}
+        {% endif %}
+        {% if po.status == 'Sent' or po.status == 'Partial' %}
+            {% if 'po.receive' in user_perms %}<a href="/purchase/{{ po.pk }}/receive" class="btn btn-success"><i class="fas fa-box-open"></i> Receive goods</a>{% endif %}
+        {% endif %}
+        {% if po.status == 'Received' or po.status == 'Partial' %}
+            {% if 'return.process' in user_perms %}<a href="/returns/new?type=PURCHASE_RETURN&order={{ po.po_number }}" class="btn btn-outline-warning"><i class="fas fa-undo"></i> Purchase return</a>{% endif %}
+        {% endif %}
+        {% if po.status == 'Draft' or po.status == 'Sent' %}
+            {% if 'po.create' in user_perms %}<form method="post" action="/purchase/{{ po.pk }}/cancel" class="d-inline" data-confirm="Cancel this purchase order?">{% csrf_token %}<button class="btn btn-outline-danger">Cancel order</button></form>{% endif %}
+        {% endif %}
+        {% if po.status == 'Draft' and 'po.create' in user_perms %}<a href="#" onclick="confirmDelete('/purchase/delete/{{ po.pk }}')" class="btn btn-outline-danger"><i class="fas fa-trash"></i> Delete</a>{% endif %}
+        <a href="/purchase/" class="btn btn-secondary ml-2">Back</a>
+    </div>
+    {% if receipts %}<h6 class="mt-4">Goods receipts</h6><ul>{% for t in receipts %}<li><a href="/stock/transactions/{{ t.pk }}/">#{{ t.pk }}</a> - {{ t.warehouse }} - {{ t.transaction_date|date:'d-m-Y H:i' }} by {{ t.user }}</li>{% endfor %}</ul>{% endif %}
+</div></div></div>
+{% endblock %}

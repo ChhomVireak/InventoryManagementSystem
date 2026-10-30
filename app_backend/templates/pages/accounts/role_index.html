@@ -1,0 +1,14 @@
+{% extends "index.html" %}
+{% block page_title %}Roles{% endblock %}
+{% block heading %}Roles &amp; Permissions{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/users/">Users</a></li><li class="breadcrumb-item active">Roles</li>{% endblock %}
+{% block content %}
+{% for role in roles %}
+<div class="col-md-4"><div class="card card-outline card-primary">
+    <div class="card-header"><h3 class="card-title">{{ role.role_name }}</h3>
+        <div class="card-tools">{% if role.role_name != 'Admin' %}<a href="/users/roles/edit/{{ role.pk }}" class="btn btn-tool"><i class="fas fa-edit"></i></a>{% endif %}</div></div>
+    <div class="card-body"><p class="text-muted">{{ role.description }}</p>
+        {% for p in role.permissions.all %}<span class="badge badge-light border mb-1">{{ p.permission_code }}</span> {% endfor %}</div>
+</div></div>
+{% endfor %}
+{% endblock %}

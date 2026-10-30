@@ -1,0 +1,26 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}Customers{% endblock %}
+{% block heading %}Customer Management{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item active">Customers</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card">
+    <div class="card-header"><div class="d-flex align-items-center justify-content-between">
+        {% if 'partner.manage' in user_perms %}<a href="/customer/formcreate" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> Add Customer</a>{% else %}<span></span>{% endif %}
+        <form action="/customer/" method="get" class="form-inline">
+            <select name="status" class="form-control form-control-sm mr-1" onchange="this.form.submit()"><option value="">Any status</option><option {% if filters.status == 'Active' %}selected{% endif %}>Active</option><option {% if filters.status == 'Inactive' %}selected{% endif %}>Inactive</option></select>
+            <div class="input-group input-group-sm" style="width: 200px;"><input type="text" name="keyword" value="{{ keyword }}" class="form-control" placeholder="Search">
+            <div class="input-group-append"><button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button></div></div></form>
+    </div></div>
+    <div class="card-body table-responsive p-0"><table class="table table-hover text-nowrap">
+        <thead><tr><th>#</th><th>{% sort_link 'name' 'Name' %}</th><th>{% sort_link 'email' 'Email' %}</th><th>{% sort_link 'phone' 'Phone' %}</th><th>Address</th><th>{% sort_link 'status' 'Status' %}</th><th>Action</th></tr></thead>
+        <tbody>{% for r in page %}<tr>
+            <td>{{ r.pk }}</td><td>{{ r.name }}</td><td>{{ r.email }}</td><td>{{ r.phone }}</td><td>{{ r.address }}</td><td>{{ r.status|status_badge }}</td>
+            <td>{% if 'partner.manage' in user_perms %}
+                <a href="/customer/edit/{{ r.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i> Edit</a>
+                <a href="#" onclick="confirmDelete('/customer/delete/{{ r.pk }}')" class="btn btn-sm btn-danger ml-1"><i class="fas fa-trash"></i> Delete</a>{% endif %}</td>
+        </tr>{% empty %}<tr><td colspan="8" class="text-center text-muted p-4">No records yet.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% include "pages/_pagination.html" %}
+</div></div>
+{% endblock %}

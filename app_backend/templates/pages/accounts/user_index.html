@@ -1,0 +1,28 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}Users{% endblock %}
+{% block heading %}User Management{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item active">Users</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card">
+    <div class="card-header"><div class="d-flex align-items-center justify-content-between">
+        <div><a href="/users/formcreate" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> Add User</a>
+            <a href="/users/roles/" class="btn btn-sm btn-outline-secondary ml-1"><i class="fas fa-user-shield"></i> Roles &amp; Permissions</a></div>
+        <form action="/users/" method="get" class="form-inline">
+            <select name="role" class="form-control form-control-sm mr-1" onchange="this.form.submit()"><option value="">All roles</option>{% for r in roles %}<option value="{{ r.pk }}" {% if filters.role == r.pk|stringformat:'s' %}selected{% endif %}>{{ r.role_name }}</option>{% endfor %}</select>
+            <select name="status" class="form-control form-control-sm mr-1" onchange="this.form.submit()"><option value="">Any status</option><option {% if filters.status == 'Active' %}selected{% endif %}>Active</option><option {% if filters.status == 'Inactive' %}selected{% endif %}>Inactive</option></select>
+            <div class="input-group input-group-sm" style="width: 200px;"><input type="text" name="keyword" value="{{ keyword }}" class="form-control" placeholder="Search">
+            <div class="input-group-append"><button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button></div></div></form>
+    </div></div>
+    <div class="card-body table-responsive p-0"><table class="table table-hover text-nowrap">
+        <thead><tr><th>#</th><th>{% sort_link 'username' 'Username' %}</th><th>{% sort_link 'name' 'Full name' %}</th><th>Email</th><th>Phone</th><th>{% sort_link 'role' 'Role' %}</th><th>{% sort_link 'status' 'Status' %}</th><th>Action</th></tr></thead>
+        <tbody>{% for u in page %}<tr>
+            <td>{{ u.pk }}</td><td>{{ u.username }}</td><td>{{ u.full_name }}</td><td>{{ u.email }}</td><td>{{ u.phone }}</td>
+            <td><span class="badge badge-primary">{{ u.role }}</span></td><td>{{ u.status|status_badge }}</td>
+            <td><a href="/users/edit/{{ u.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i> Edit</a>
+                {% if u.pk != request.user.pk %}<a href="#" onclick="confirmDelete('/users/delete/{{ u.pk }}')" class="btn btn-sm btn-danger ml-1"><i class="fas fa-trash"></i> Delete</a>{% endif %}</td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    {% include "pages/_pagination.html" %}
+</div></div>
+{% endblock %}

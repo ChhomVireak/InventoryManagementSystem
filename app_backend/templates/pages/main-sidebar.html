@@ -1,0 +1,83 @@
+{% load static ims_tags %}
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="/admin_dashboard/" class="brand-link">
+        <img src="{% static 'dist/img/AdminLTELogo.png' %}" alt="Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+        <span class="brand-text font-weight-light">Inventory MS</span>
+    </a>
+
+    <div class="sidebar d-flex flex-column">
+        <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
+            <div class="image"><img src="{% static 'dist/img/user2-160x160.jpg' %}" class="img-circle elevation-2" alt="User"></div>
+            <div class="info"><a href="#" class="d-block">{{ request.user.full_name }}</a><small class="text-muted">{{ request.user.role }}</small></div>
+        </div>
+
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <li class="nav-item">
+                    <a href="/admin_dashboard/" class="nav-link {% if request.path == '/admin_dashboard/' %}active{% endif %}">
+                        <i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p></a>
+                </li>
+
+                <li class="nav-item {% if request.path|path_in:'/product/,/warehouse/,/supplier/,/customer/' %}menu-open{% endif %}">
+                    <a href="#" class="nav-link {% if request.path|path_in:'/product/,/warehouse/,/supplier/,/customer/' %}active{% endif %}">
+                        <i class="nav-icon fas fa-database"></i><p>Master Data <i class="right fas fa-angle-left"></i></p></a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item"><a href="/product/" class="nav-link {% if request.path|startswith:'/product/' and not request.path|startswith:'/product/category' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Products</p></a></li>
+                        <li class="nav-item"><a href="/product/category/" class="nav-link {% if request.path|startswith:'/product/category' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Categories</p></a></li>
+                        <li class="nav-item"><a href="/warehouse/" class="nav-link {% if request.path|startswith:'/warehouse/' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Warehouses</p></a></li>
+                        <li class="nav-item"><a href="/supplier/" class="nav-link {% if request.path|startswith:'/supplier/' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Suppliers</p></a></li>
+                        <li class="nav-item"><a href="/customer/" class="nav-link {% if request.path|startswith:'/customer/' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Customers</p></a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item {% if request.path|startswith:'/stock/' %}menu-open{% endif %}">
+                    <a href="#" class="nav-link {% if request.path|startswith:'/stock/' %}active{% endif %}">
+                        <i class="nav-icon fas fa-boxes"></i><p>Inventory <i class="right fas fa-angle-left"></i></p></a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item"><a href="/stock/" class="nav-link {% if request.path == '/stock/' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Stock Levels</p></a></li>
+                        {% if 'stock.in' in user_perms %}<li class="nav-item"><a href="/stock/in/" class="nav-link {% if request.path == '/stock/in/' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Stock In</p></a></li>{% endif %}
+                        {% if 'stock.out' in user_perms %}<li class="nav-item"><a href="/stock/out/" class="nav-link {% if request.path == '/stock/out/' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Stock Out</p></a></li>{% endif %}
+                        {% if 'stock.adjust.request' in user_perms or 'stock.adjust.approve' in user_perms %}<li class="nav-item"><a href="/stock/adjustments/" class="nav-link {% if request.path|startswith:'/stock/adjustments' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Adjustments</p></a></li>{% endif %}
+                        {% if 'stock.transfer.request' in user_perms or 'stock.transfer.approve' in user_perms %}<li class="nav-item"><a href="/stock/transfers/" class="nav-link {% if request.path|startswith:'/stock/transfers' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Transfers</p></a></li>{% endif %}
+                        {% if 'stock.count' in user_perms %}<li class="nav-item"><a href="/stock/counts/" class="nav-link {% if request.path|startswith:'/stock/counts' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Stock Counts</p></a></li>{% endif %}
+                        <li class="nav-item"><a href="/stock/batches/" class="nav-link {% if request.path|startswith:'/stock/batches' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Batches &amp; Expiry</p></a></li>
+                        <li class="nav-item"><a href="/stock/transactions/" class="nav-link {% if request.path|startswith:'/stock/transactions' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Stock Ledger</p></a></li>
+                    </ul>
+                </li>
+
+                {% if 'po.create' in user_perms or 'po.approve' in user_perms or 'po.receive' in user_perms or 'report.view' in user_perms %}
+                <li class="nav-item"><a href="/purchase/" class="nav-link {% if request.path|startswith:'/purchase/' %}active{% endif %}"><i class="nav-icon fas fa-shopping-cart"></i><p>Purchase Orders</p></a></li>
+                {% endif %}
+                {% if 'so.create' in user_perms or 'so.dispatch' in user_perms or 'report.view' in user_perms %}
+                <li class="nav-item"><a href="/sales/" class="nav-link {% if request.path|startswith:'/sales/' %}active{% endif %}"><i class="nav-icon fas fa-cash-register"></i><p>Sales Orders</p></a></li>
+                {% endif %}
+                {% if 'return.process' in user_perms or 'report.view' in user_perms %}
+                <li class="nav-item"><a href="/returns/" class="nav-link {% if request.path|startswith:'/returns/' %}active{% endif %}"><i class="nav-icon fas fa-undo"></i><p>Returns</p></a></li>
+                {% endif %}
+                {% if 'report.view' in user_perms %}
+                <li class="nav-item {% if request.path|startswith:'/report/' %}menu-open{% endif %}">
+                    <a href="#" class="nav-link {% if request.path|startswith:'/report/' %}active{% endif %}"><i class="nav-icon fas fa-chart-bar"></i><p>Reports <i class="right fas fa-angle-left"></i></p></a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item"><a href="/report/" class="nav-link {% if request.path == '/report/' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>All Reports</p></a></li>
+                        <li class="nav-item"><a href="/report/kpi/" class="nav-link {% if request.path == '/report/kpi/' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>KPI Dashboard</p></a></li>
+                    </ul>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a href="/notification/" class="nav-link {% if request.path|startswith:'/notification/' %}active{% endif %}"><i class="nav-icon far fa-bell"></i>
+                        <p>Notifications {% if unread_count %}<span class="badge badge-warning right">{{ unread_count }}</span>{% endif %}</p></a>
+                </li>
+                {% if 'user.manage' in user_perms or 'audit.view' in user_perms %}
+                <li class="nav-header">ADMINISTRATION</li>
+                {% if 'user.manage' in user_perms %}
+                <li class="nav-item"><a href="/users/" class="nav-link {% if request.path|startswith:'/users/' and not request.path|startswith:'/users/roles' %}active{% endif %}"><i class="nav-icon fas fa-users-cog"></i><p>Users</p></a></li>
+                <li class="nav-item"><a href="/users/roles/" class="nav-link {% if request.path|startswith:'/users/roles' %}active{% endif %}"><i class="nav-icon fas fa-user-shield"></i><p>Roles &amp; Permissions</p></a></li>
+                {% endif %}
+                {% if 'audit.view' in user_perms %}
+                <li class="nav-item"><a href="/audit/" class="nav-link {% if request.path|startswith:'/audit/' %}active{% endif %}"><i class="nav-icon fas fa-history"></i><p>Audit Log</p></a></li>
+                {% endif %}
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</aside>

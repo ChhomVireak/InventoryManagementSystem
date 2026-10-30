@@ -1,0 +1,13 @@
+{% extends "index.html" %}
+{% block page_title %}Start Count{% endblock %}
+{% block heading %}Start Stock Count{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/stock/counts/">Counts</a></li><li class="breadcrumb-item active">New</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card card-primary">
+    <div class="card-header"><h3 class="card-title">The system quantity of every product in the warehouse is captured when you start.</h3></div>
+    <form method="post" action="/stock/counts/new" novalidate>{% csrf_token %}
+        <div class="card-body">{% include "pages/_form_fields.html" %}</div>
+        <div class="card-footer"><button class="btn btn-primary"><i class="fas fa-play"></i> Start count</button> <a href="/stock/counts/" class="btn btn-secondary ml-2">Cancel</a></div>
+    </form>
+</div></div>
+{% endblock %}

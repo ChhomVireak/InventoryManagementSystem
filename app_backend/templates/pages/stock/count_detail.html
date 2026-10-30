@@ -1,0 +1,64 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}{{ count.count_number }}{% endblock %}
+{% block heading %}Count {{ count.count_number }} {{ count.status|status_badge }}{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/stock/counts/">Counts</a></li><li class="breadcrumb-item active">{{ count.count_number }}</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card">
+    <div class="card-header"><b>{{ count.warehouse }}</b> &middot; {{ count.count_date|date:'d-m-Y' }} &middot; by {{ count.performed_by }}
+        {% if count.status != 'Open' %}<span class="float-right">Variance report: <b class="{% if totals.var < 0 %}text-danger{% elif totals.var > 0 %}text-success{% endif %}">{{ totals.var|default:0|stringformat:'+d' }} units</b> in {{ variance_items }} product(s)</span>{% endif %}</div>
+    {% if count.status == 'Open' %}
+    <div class="card-body pb-0"><div class="form-group" style="max-width: 360px;"><label><i class="fas fa-barcode"></i> Scan product to count (+1 per scan)</label>
+        <div class="input-group"><input type="text" id="count-scan" class="form-control" placeholder="Scan barcode / SKU, then Enter" autocomplete="off" autofocus>
+        <div class="input-group-append"><button type="button" class="btn btn-outline-secondary js-camera-scan" data-target="#count-scan"><i class="fas fa-camera"></i></button></div></div></div></div>
+    {% endif %}
+    <form method="post" id="count-form" action="/stock/counts/{{ count.pk }}/save">{% csrf_token %}
+    <div class="card-body table-responsive p-0"><table class="table table-hover text-nowrap">
+        <thead><tr><th>SKU</th><th>Product</th><th class="text-right">System qty</th><th class="text-right" style="width:160px">Counted</th><th class="text-right">Variance</th></tr></thead>
+        <tbody>{% for i in items %}<tr data-sku="{{ i.product.sku }}" data-barcode="{{ i.product.barcode|default:'' }}" class="{% if i.counted_quantity is not None and i.variance != 0 %}table-warning{% endif %}">
+            <td>{{ i.product.sku }}</td><td>{{ i.product.name }}</td><td class="text-right">{{ i.system_quantity }}</td>
+            <td class="text-right">{% if count.status == 'Open' %}<input type="number" min="0" name="counted_{{ i.product_id }}" value="{{ i.counted_quantity|default_if_none:'' }}" class="form-control form-control-sm text-right counted-input">{% else %}{{ i.counted_quantity }}{% endif %}</td>
+            <td class="text-right {% if i.variance < 0 %}text-danger{% elif i.variance > 0 %}text-success{% endif %}">{% if i.counted_quantity is not None %}{{ i.variance|stringformat:'+d' }}{% else %}-{% endif %}</td></tr>
+        {% empty %}<tr><td colspan="5" class="text-center text-muted p-4">No stock in this warehouse yet - add products below.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    <div class="card-footer">
+        {% if count.status == 'Open' %}
+            <button class="btn btn-primary"><i class="fas fa-save"></i> Save counts</button>
+            <button type="submit" formaction="/stock/counts/{{ count.pk }}/complete" class="btn btn-success ml-1"><i class="fas fa-flag-checkered"></i> Complete count</button>
+        {% endif %}
+        <a href="/stock/counts/" class="btn btn-secondary ml-2">Back</a>
+    </div>
+    </form>
+    {% if count.status == 'Open' %}
+    <div class="card-footer bg-light"><form method="post" action="/stock/counts/{{ count.pk }}/add" class="form-inline">{% csrf_token %}
+        <label class="mr-2">Add a product that has no stock record:</label>
+        <select name="product" class="form-control js-product mr-2" style="width: 320px" data-url="/product/search/"></select>
+        <button class="btn btn-sm btn-outline-primary">Add</button></form></div>
+    {% elif count.status == 'Completed' %}
+    <div class="card-footer">{% if 'stock.adjust.approve' in user_perms %}
+        <form method="post" action="/stock/counts/{{ count.pk }}/approve" data-confirm="Post {{ variance_items }} variance(s) to stock?">{% csrf_token %}<button class="btn btn-success"><i class="fas fa-check"></i> Approve &amp; post variances to stock</button></form>
+        {% else %}<span class="text-muted">Waiting for an approver to post the variances.</span>{% endif %}</div>
+    {% endif %}
+</div></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    $('#count-scan').on('keydown', function (e) {
+        if (e.key !== 'Enter') { return; }
+        e.preventDefault();
+        var code = $(this).val().trim().toLowerCase();
+        var $row = $('#count-form tbody tr').filter(function () {
+            return $(this).data('sku').toString().toLowerCase() === code || ($(this).data('barcode') || '').toString().toLowerCase() === code;
+        }).first();
+        if ($row.length) {
+            var $in = $row.find('.counted-input');
+            $in.val((parseInt($in.val()) || 0) + 1);
+            $row[0].scrollIntoView({block: 'center'});
+            $row.addClass('table-success');
+        } else {
+            Swal.fire({toast: true, position: 'top-end', icon: 'error', title: 'Not in this count: ' + code, showConfirmButton: false, timer: 2500});
+        }
+        $(this).val('');
+    });
+</script>
+{% endblock %}

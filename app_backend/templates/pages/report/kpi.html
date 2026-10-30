@@ -1,0 +1,19 @@
+{% extends "index.html" %}
+{% block page_title %}KPI Dashboard{% endblock %}
+{% block heading %}Key Performance Indicators{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/report/">Reports</a></li><li class="breadcrumb-item active">KPI</li>{% endblock %}
+{% block content %}
+{% for k in kpis %}
+<div class="col-md-4 col-sm-6"><div class="info-box">
+    <span class="info-box-icon {% if k.ok is True %}bg-success{% elif k.ok is False %}bg-danger{% else %}bg-info{% endif %}"><i class="fas fa-chart-line"></i></span>
+    <div class="info-box-content">
+        <span class="info-box-text" title="{{ k.definition }}">{{ k.name }}</span>
+        <span class="info-box-number">{% if k.value is None %}<span class="text-muted">n/a</span>{% else %}{{ k.value }}{{ k.unit }}{% endif %}</span>
+        <small class="text-muted">{{ k.definition }}</small><small>Target: {{ k.target }}</small>
+    </div></div></div>
+{% endfor %}
+<div class="col-12"><div class="card"><div class="card-header"><h3 class="card-title">Supplier lead time (PO date to first receipt)</h3></div>
+    <div class="card-body table-responsive p-0"><table class="table table-sm"><thead><tr><th>Supplier</th><th class="text-right">Orders received</th><th class="text-right">Average days</th></tr></thead>
+    <tbody>{% for s in lead_times %}<tr><td>{{ s.supplier }}</td><td class="text-right">{{ s.orders }}</td><td class="text-right">{{ s.avg_days }}</td></tr>
+    {% empty %}<tr><td colspan="3" class="text-center text-muted p-3">No received purchase orders yet.</td></tr>{% endfor %}</tbody></table></div></div></div>
+{% endblock %}

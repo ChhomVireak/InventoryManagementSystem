@@ -1,0 +1,26 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}Categories{% endblock %}
+{% block heading %}Product Categories{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item active">Categories</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card">
+    <div class="card-header"><div class="d-flex align-items-center justify-content-between">
+        {% if 'product.manage' in user_perms %}<a href="/product/category/formcreate" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> Add Category</a>{% else %}<span></span>{% endif %}
+        <form action="/product/category/" method="get"><div class="input-group input-group-sm" style="width: 200px;">
+            <input type="text" name="keyword" value="{{ keyword }}" class="form-control" placeholder="Search">
+            <div class="input-group-append"><button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button></div></div></form>
+    </div></div>
+    <div class="card-body table-responsive p-0"><table class="table table-hover">
+        <thead><tr><th>#</th><th>{% sort_link 'name' 'Name' %}</th><th>Description</th><th>{% sort_link 'products' 'Products' %}</th><th>Action</th></tr></thead>
+        <tbody>{% for c in page %}<tr>
+            <td>{{ c.pk }}</td><td>{{ c.name }}</td><td>{{ c.description }}</td>
+            <td><a href="/product/?category={{ c.pk }}">{{ c.product_count }}</a></td>
+            <td>{% if 'product.manage' in user_perms %}
+                <a href="/product/category/edit/{{ c.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i> Edit</a>
+                <a href="#" onclick="confirmDelete('/product/category/delete/{{ c.pk }}')" class="btn btn-sm btn-danger ml-1"><i class="fas fa-trash"></i> Delete</a>{% endif %}</td>
+        </tr>{% empty %}<tr><td colspan="5" class="text-center text-muted p-4">No categories yet.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% include "pages/_pagination.html" %}
+</div></div>
+{% endblock %}

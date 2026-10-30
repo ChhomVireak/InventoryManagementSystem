@@ -1,0 +1,15 @@
+{% extends "index.html" %}
+{% block page_title %}Access denied{% endblock %}
+{% block heading %}Access denied{% endblock %}
+{% block content %}
+    <div class="col-12">
+        <div class="error-page">
+            <h2 class="headline text-danger"> 403</h2>
+            <div class="error-content pt-4">
+                <h3><i class="fas fa-lock text-danger"></i> You do not have permission.</h3>
+                <p>Your role does not allow this action. Contact an administrator if you need access.
+                    <a href="/admin_dashboard/">Return to the dashboard</a>.</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

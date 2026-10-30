@@ -1,0 +1,27 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}Notifications{% endblock %}
+{% block heading %}Notifications{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item active">Notifications</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card">
+    <div class="card-header"><div class="d-flex align-items-center justify-content-between">
+        <form method="post" action="/notification/read-all">{% csrf_token %}<button class="btn btn-sm btn-outline-primary"><i class="fas fa-check-double"></i> Mark all as read</button></form>
+        <form method="get" class="form-inline">
+            <select name="type" class="form-control form-control-sm mr-1" onchange="this.form.submit()"><option value="">All types</option>
+                <option value="LOW_STOCK" {% if filters.type == 'LOW_STOCK' %}selected{% endif %}>Low stock</option><option value="EXPIRY" {% if filters.type == 'EXPIRY' %}selected{% endif %}>Expiry</option>
+                <option value="APPROVAL" {% if filters.type == 'APPROVAL' %}selected{% endif %}>Approval</option><option value="ORDER_STATUS" {% if filters.type == 'ORDER_STATUS' %}selected{% endif %}>Order status</option></select>
+            <div class="input-group input-group-sm" style="width: 200px;"><input type="text" name="keyword" value="{{ keyword }}" class="form-control" placeholder="Search">
+            <div class="input-group-append"><button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button></div></div></form>
+    </div></div>
+    <div class="card-body table-responsive p-0"><table class="table table-hover">
+        <thead><tr><th>{% sort_link 'type' 'Type' %}</th><th>Message</th><th>{% sort_link 'date' 'When' %}</th><th></th></tr></thead>
+        <tbody>{% for n in page %}<tr class="{% if not n.is_read %}font-weight-bold{% endif %}">
+            <td><span class="badge badge-{% if n.type == 'LOW_STOCK' %}warning{% elif n.type == 'EXPIRY' %}danger{% elif n.type == 'APPROVAL' %}info{% else %}primary{% endif %}">{{ n.get_type_display }}</span></td>
+            <td>{{ n.message }}</td><td class="text-nowrap">{{ n.created_at|date:'d-m-Y H:i' }}</td>
+            <td>{% if not n.is_read %}<form method="post" action="/notification/read/{{ n.pk }}">{% csrf_token %}<button class="btn btn-xs btn-default">Mark read</button></form>{% endif %}</td>
+        </tr>{% empty %}<tr><td colspan="4" class="text-center text-muted p-4">No notifications.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% include "pages/_pagination.html" %}
+</div></div>
+{% endblock %}

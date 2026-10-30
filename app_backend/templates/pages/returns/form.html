@@ -1,0 +1,33 @@
+{% extends "index.html" %}
+{% block page_title %}New Return{% endblock %}
+{% block heading %}New Return{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/returns/">Returns</a></li><li class="breadcrumb-item active">New</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card card-warning">
+    <div class="card-header"><h3 class="card-title">Step 1 - find the original order (a return must be linked to an order)</h3></div>
+    <form method="get" action="/returns/new"><div class="card-body"><div class="row">
+        <div class="col-sm-3"><label>Return type</label><select name="type" class="form-control" required>
+            <option value="">---------</option>{% for v, l in types %}<option value="{{ v }}" {% if return_type == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+        <div class="col-sm-4"><label>Order number</label><input type="text" name="order" value="{{ order_number }}" class="form-control" placeholder="PO-20261027-0001 / SO-..." required></div>
+        <div class="col-sm-2"><label>&nbsp;</label><button class="btn btn-primary btn-block"><i class="fas fa-search"></i> Find order</button></div>
+    </div></div></form>
+</div></div>
+{% if rows is not None and order %}
+<div class="col-12"><div class="card card-primary">
+    <div class="card-header"><h3 class="card-title">Step 2 - choose what is returned from {% if return_type == 'PURCHASE_RETURN' %}{{ order.po_number }} ({{ order.supplier }}){% else %}{{ order.so_number }} ({{ order.customer }}){% endif %}</h3></div>
+    <form method="post" action="/returns/new">{% csrf_token %}
+        <input type="hidden" name="step" value="save"><input type="hidden" name="return_type" value="{{ return_type }}"><input type="hidden" name="order_number" value="{% if return_type == 'PURCHASE_RETURN' %}{{ order.po_number }}{% else %}{{ order.so_number }}{% endif %}">
+        <div class="card-body">
+            <table class="table table-sm"><thead class="thead-light"><tr><th>Product</th><th class="text-right">{% if return_type == 'PURCHASE_RETURN' %}Received{% else %}Shipped{% endif %}</th><th class="text-right">Already returned</th><th class="text-right">Can return</th><th style="width:130px">Return qty</th>{% if return_type == 'SALES_RETURN' %}<th style="width:160px">Condition</th>{% endif %}</tr></thead>
+            <tbody>{% for item, used, left in rows %}<tr><td>{{ item.product }}</td>
+                <td class="text-right">{% if return_type == 'PURCHASE_RETURN' %}{{ item.quantity_received }}{% else %}{{ item.quantity_shipped }}{% endif %}</td><td class="text-right">{{ used }}</td><td class="text-right">{{ left }}</td>
+                <td><input type="number" min="0" max="{{ left }}" name="qty_{{ item.pk }}" value="0" class="form-control form-control-sm text-right" {% if not left %}disabled{% endif %}></td>
+                {% if return_type == 'SALES_RETURN' %}<td><select name="cond_{{ item.pk }}" class="form-control form-control-sm"><option>Restockable</option><option>Damaged</option></select></td>{% endif %}</tr>{% endfor %}</tbody></table>
+            <div class="row"><div class="col-sm-3"><label>Return date</label><input type="date" name="return_date" value="{{ today|date:'Y-m-d' }}" class="form-control" required></div>
+                <div class="col-sm-9"><label>Reason <span class="text-danger">*</span></label><input type="text" name="reason" maxlength="255" value="{{ posted.reason }}" class="form-control" required></div></div>
+        </div>
+        <div class="card-footer"><button class="btn btn-primary"><i class="fas fa-save"></i> Create return</button> <a href="/returns/" class="btn btn-secondary ml-2">Cancel</a></div>
+    </form>
+</div></div>
+{% endif %}
+{% endblock %}

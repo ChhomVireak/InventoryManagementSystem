@@ -1,0 +1,23 @@
+{% extends "index.html" %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block heading %}{{ title }}{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/stock/">Stock</a></li><li class="breadcrumb-item active">{{ title }}</li>{% endblock %}
+{% block content %}
+<div class="col-md-12"><div class="card {% if kind == 'in' %}card-success{% else %}card-warning{% endif %}">
+    <div class="card-header"><h3 class="card-title">{{ title }}</h3></div>
+    <form method="post" action="{{ action }}" novalidate>{% csrf_token %}
+        <div class="card-body">
+            <div class="form-group" style="max-width: 360px;">
+                <label><i class="fas fa-barcode"></i> Scan barcode (USB scanner / camera)</label>
+                <div class="input-group">
+                    <input type="text" id="barcode" class="form-control js-barcode" data-target="#id_product" placeholder="Scan then Enter - selects the product" autocomplete="off" autofocus>
+                    <div class="input-group-append"><button type="button" class="btn btn-outline-secondary js-camera-scan" data-target="#barcode"><i class="fas fa-camera"></i></button></div>
+                </div>
+            </div>
+            {% include "pages/_form_fields.html" %}
+        </div>
+        <div class="card-footer"><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Record</button>
+            <a href="/stock/" class="btn btn-secondary ml-2">Back to Stock</a></div>
+    </form>
+</div></div>
+{% endblock %}

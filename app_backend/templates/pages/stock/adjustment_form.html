@@ -1,0 +1,16 @@
+{% extends "index.html" %}
+{% block page_title %}Stock Adjustment{% endblock %}
+{% block heading %}Stock Adjustment{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/stock/adjustments/">Adjustments</a></li><li class="breadcrumb-item active">New</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card card-info">
+    <div class="card-header"><h3 class="card-title">Adjust stock (a reason is mandatory)</h3></div>
+    <form method="post" action="/stock/adjustments/new" novalidate>{% csrf_token %}
+        <div class="card-body">
+            <p class="text-muted">Adjustments larger than the approval threshold are sent to an Inventory Manager for approval before stock changes.</p>
+            {% include "pages/_form_fields.html" %}
+        </div>
+        <div class="card-footer"><button class="btn btn-primary"><i class="fas fa-save"></i> Submit</button> <a href="/stock/adjustments/" class="btn btn-secondary ml-2">Cancel</a></div>
+    </form>
+</div></div>
+{% endblock %}

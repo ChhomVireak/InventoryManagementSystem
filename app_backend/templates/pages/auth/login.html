@@ -1,0 +1,31 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>IMS | Log in</title>
+    <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
+</head>
+<body class="hold-transition login-page">
+<div class="login-box">
+    <div class="login-logo"><b>Inventory</b> MS</div>
+    <div class="card"><div class="card-body login-card-body">
+        <p class="login-box-msg">Sign in to start your session</p>
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+        <form method="post" action="/login/">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <div class="input-group mb-3">
+                <input type="text" name="username" class="form-control" placeholder="Username" autofocus required>
+                <div class="input-group-append"><div class="input-group-text"><span class="fas fa-user"></span></div></div>
+            </div>
+            <div class="input-group mb-3">
+                <input type="password" name="password" class="form-control" placeholder="Password" required>
+                <div class="input-group-append"><div class="input-group-text"><span class="fas fa-lock"></span></div></div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+    </div></div>
+</div>
+</body>
+</html>

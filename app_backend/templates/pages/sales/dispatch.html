@@ -1,0 +1,22 @@
+{% extends "index.html" %}
+{% block page_title %}Dispatch{% endblock %}
+{% block heading %}Dispatch goods - {{ so.so_number }}{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/sales/">Sales orders</a></li><li class="breadcrumb-item"><a href="/sales/{{ so.pk }}/">{{ so.so_number }}</a></li><li class="breadcrumb-item active">Dispatch</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card card-success">
+    <div class="card-header"><h3 class="card-title">Customer: {{ so.customer }}</h3></div>
+    <form method="post" action="/sales/{{ so.pk }}/dispatch">{% csrf_token %}
+    <div class="card-body">
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+        <div class="form-group" style="max-width: 320px;"><label>Dispatch from warehouse <span class="text-danger">*</span></label>
+            <select name="warehouse" class="form-control" required><option value="">---------</option>
+            {% for w in warehouses %}<option value="{{ w.pk }}" {% if posted.warehouse == w.pk|stringformat:'s' %}selected{% endif %}>{{ w.name }}</option>{% endfor %}</select>
+            <small class="text-muted">Batch products are picked first-expiry-first-out; expired batches are never dispatched.</small></div>
+        <table class="table table-sm"><thead class="thead-light"><tr><th>Product</th><th class="text-right">Ordered</th><th class="text-right">Shipped</th><th class="text-right">Remaining</th><th style="width:140px">Ship now</th></tr></thead>
+        <tbody>{% for i in items %}<tr><td>{{ i.product }}</td><td class="text-right">{{ i.quantity_ordered }}</td><td class="text-right">{{ i.quantity_shipped }}</td><td class="text-right">{{ i.remaining }}</td>
+            <td><input type="number" min="0" max="{{ i.remaining }}" name="qty_{{ i.pk }}" value="{{ i.remaining }}" class="form-control form-control-sm text-right" {% if not i.remaining %}disabled{% endif %}></td></tr>{% endfor %}</tbody></table>
+    </div>
+    <div class="card-footer"><button class="btn btn-success"><i class="fas fa-truck"></i> Confirm dispatch</button> <a href="/sales/{{ so.pk }}/" class="btn btn-secondary ml-2">Cancel</a></div>
+    </form>
+</div></div>
+{% endblock %}

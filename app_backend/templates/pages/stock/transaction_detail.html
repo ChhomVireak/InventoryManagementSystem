@@ -1,0 +1,19 @@
+{% extends "index.html" %}
+{% block page_title %}Transaction #{{ txn.pk }}{% endblock %}
+{% block heading %}Transaction #{{ txn.pk }}{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/stock/transactions/">Ledger</a></li><li class="breadcrumb-item active">#{{ txn.pk }}</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card"><div class="card-body">
+    <dl class="row">
+        <dt class="col-sm-2">Type</dt><dd class="col-sm-4">{{ txn.transaction_type }}</dd>
+        <dt class="col-sm-2">Date</dt><dd class="col-sm-4">{{ txn.transaction_date|date:'d-m-Y H:i:s' }}</dd>
+        <dt class="col-sm-2">Warehouse</dt><dd class="col-sm-4">{{ txn.warehouse }}</dd>
+        <dt class="col-sm-2">User</dt><dd class="col-sm-4">{{ txn.user }}</dd>
+        <dt class="col-sm-2">Reference</dt><dd class="col-sm-4">{% if txn.reference_url %}<a href="{{ txn.reference_url }}">{{ txn.reference_type }} #{{ txn.reference_id }}</a>{% else %}{{ txn.reference_type }}{% endif %}</dd>
+        <dt class="col-sm-2">Notes</dt><dd class="col-sm-4">{{ txn.notes }}</dd>
+    </dl>
+    <table class="table table-sm"><thead><tr><th>SKU</th><th>Product</th><th>Batch</th><th class="text-right">Quantity</th><th class="text-right">Unit cost</th></tr></thead>
+    <tbody>{% for l in lines %}<tr><td>{{ l.product.sku }}</td><td>{{ l.product.name }}</td><td>{{ l.batch.batch_number|default:'-' }}{% if l.batch.expiry_date %} <small class="text-muted">exp {{ l.batch.expiry_date|date:'d-m-Y' }}</small>{% endif %}</td>
+        <td class="text-right {% if l.quantity > 0 %}text-success{% else %}text-danger{% endif %}">{{ l.quantity|stringformat:'+d' }}</td><td class="text-right">{{ l.unit_cost }}</td></tr>{% endfor %}</tbody></table>
+</div></div></div>
+{% endblock %}

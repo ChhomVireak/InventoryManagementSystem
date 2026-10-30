@@ -1,0 +1,28 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}Stock Adjustments{% endblock %}
+{% block heading %}Stock Adjustments{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/stock/">Stock</a></li><li class="breadcrumb-item active">Adjustments</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card">
+    <div class="card-header"><div class="d-flex align-items-center justify-content-between">
+        <a href="/stock/adjustments/new" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> {% if 'stock.adjust.approve' in user_perms %}New Adjustment{% else %}Request Adjustment{% endif %}</a>
+        <form method="get" class="form-inline">
+            <select name="status" class="form-control form-control-sm mr-1" onchange="this.form.submit()"><option value="">Any status</option><option {% if filters.status == 'Pending' %}selected{% endif %}>Pending</option><option {% if filters.status == 'Approved' %}selected{% endif %}>Approved</option><option {% if filters.status == 'Rejected' %}selected{% endif %}>Rejected</option></select>
+            <div class="input-group input-group-sm" style="width: 200px;"><input type="text" name="keyword" value="{{ keyword }}" class="form-control" placeholder="Search">
+            <div class="input-group-append"><button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button></div></div></form>
+    </div></div>
+    <div class="card-body table-responsive p-0"><table class="table table-hover">
+        <thead><tr><th>#</th><th>{% sort_link 'date' 'Date' %}</th><th>Product</th><th>Warehouse</th><th class="text-right">{% sort_link 'qty' 'Change' %}</th><th>Reason</th><th>Requested by</th><th>{% sort_link 'status' 'Status' %}</th><th>Action</th></tr></thead>
+        <tbody>{% for a in page %}<tr>
+            <td>{{ a.pk }}</td><td class="text-nowrap">{{ a.created_at|date:'d-m-Y H:i' }}</td><td>{{ a.product }}</td><td>{{ a.warehouse.name }}</td>
+            <td class="text-right {% if a.quantity_change > 0 %}text-success{% else %}text-danger{% endif %}">{{ a.quantity_change|stringformat:'+d' }}</td>
+            <td>{{ a.reason }}</td><td>{{ a.requested_by.username }}</td><td>{{ a.status|status_badge }}{% if a.approved_by %}<br><small>by {{ a.approved_by.username }}</small>{% endif %}</td>
+            <td>{% if a.status == 'Pending' and 'stock.adjust.approve' in user_perms %}
+                <form method="post" action="/stock/adjustments/{{ a.pk }}/approve" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check"></i> Approve</button></form>
+                <form method="post" action="/stock/adjustments/{{ a.pk }}/reject" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-danger"><i class="fas fa-times"></i> Reject</button></form>{% endif %}</td>
+        </tr>{% empty %}<tr><td colspan="9" class="text-center text-muted p-4">No adjustments.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% include "pages/_pagination.html" %}
+</div></div>
+{% endblock %}

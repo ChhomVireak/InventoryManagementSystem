@@ -1,0 +1,23 @@
+{% extends "index.html" %}
+{% load ims_tags %}
+{% block page_title %}Stock Counts{% endblock %}
+{% block heading %}Stock Counting{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/stock/">Stock</a></li><li class="breadcrumb-item active">Counts</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card">
+    <div class="card-header"><div class="d-flex align-items-center justify-content-between">
+        <a href="/stock/counts/new" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> Start Count</a>
+        <form method="get" class="form-inline">
+            <select name="status" class="form-control form-control-sm mr-1" onchange="this.form.submit()"><option value="">Any status</option><option {% if filters.status == 'Open' %}selected{% endif %}>Open</option><option {% if filters.status == 'Completed' %}selected{% endif %}>Completed</option><option {% if filters.status == 'Approved' %}selected{% endif %}>Approved</option></select>
+            <div class="input-group input-group-sm" style="width: 200px;"><input type="text" name="keyword" value="{{ keyword }}" class="form-control" placeholder="Search">
+            <div class="input-group-append"><button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button></div></div></form>
+    </div></div>
+    <div class="card-body table-responsive p-0"><table class="table table-hover">
+        <thead><tr><th>{% sort_link 'number' 'Number' %}</th><th>Warehouse</th><th>{% sort_link 'date' 'Date' %}</th><th>Performed by</th><th>{% sort_link 'status' 'Status' %}</th><th></th></tr></thead>
+        <tbody>{% for c in page %}<tr><td><b>{{ c.count_number }}</b></td><td>{{ c.warehouse.name }}</td><td>{{ c.count_date|date:'d-m-Y' }}</td><td>{{ c.performed_by.username }}</td><td>{{ c.status|status_badge }}</td>
+            <td><a href="/stock/counts/{{ c.pk }}/" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i> Open</a></td></tr>
+        {% empty %}<tr><td colspan="6" class="text-center text-muted p-4">No counts.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% include "pages/_pagination.html" %}
+</div></div>
+{% endblock %}

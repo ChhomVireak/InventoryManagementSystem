@@ -1,0 +1,27 @@
+{% extends "index.html" %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block heading %}{{ title }}{% endblock %}
+{% block crumbs %}<li class="breadcrumb-item"><a href="/report/">Reports</a></li><li class="breadcrumb-item active">{{ title }}</li>{% endblock %}
+{% block content %}
+<div class="col-12"><div class="card">
+    <div class="card-header"><div class="d-flex align-items-center justify-content-between flex-wrap">
+        <form method="get" class="form-inline">
+            {% if 'from' in filters %}<label class="mr-1 mb-1">From</label><input type="date" name="from" value="{{ get.from }}" class="form-control form-control-sm mr-2 mb-1">{% endif %}
+            {% if 'to' in filters %}<label class="mr-1 mb-1">To</label><input type="date" name="to" value="{{ get.to }}" class="form-control form-control-sm mr-2 mb-1">{% endif %}
+            {% if 'warehouse' in filters %}<select name="warehouse" class="form-control form-control-sm mr-2 mb-1"><option value="">All warehouses</option>{% for w in warehouses %}<option value="{{ w.pk }}" {% if get.warehouse == w.pk|stringformat:'s' %}selected{% endif %}>{{ w.name }}</option>{% endfor %}</select>{% endif %}
+            {% if 'category' in filters %}<select name="category" class="form-control form-control-sm mr-2 mb-1"><option value="">All categories</option>{% for c in categories %}<option value="{{ c.pk }}" {% if get.category == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select>{% endif %}
+            {% if 'supplier' in filters %}<select name="supplier" class="form-control form-control-sm mr-2 mb-1"><option value="">All suppliers</option>{% for s in suppliers %}<option value="{{ s.pk }}" {% if get.supplier == s.pk|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select>{% endif %}
+            {% if 'status' in filters %}<select name="status" class="form-control form-control-sm mr-2 mb-1"><option value="">Any status</option>{% for s in statuses %}<option {% if get.status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select>{% endif %}
+            {% if 'days' in filters %}<label class="mr-1 mb-1">Within (days)</label><input type="number" name="days" min="0" value="{{ get.days|default:30 }}" class="form-control form-control-sm mr-2 mb-1" style="width:90px">{% endif %}
+            {% if filters %}<button class="btn btn-sm btn-primary mb-1"><i class="fas fa-filter"></i> Apply</button>{% endif %}
+        </form>
+        <a href="?{{ qs }}{% if qs %}&{% endif %}export=csv" class="btn btn-sm btn-outline-secondary mb-1"><i class="fas fa-download"></i> Export CSV</a>
+    </div>{% if summary %}<div class="mt-1 text-muted">{{ summary }}</div>{% endif %}</div>
+    <div class="card-body table-responsive p-0"><table class="table table-sm table-hover text-nowrap">
+        <thead class="thead-light"><tr>{% for c in columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for r in rows %}<tr>{% for v in r %}<td>{{ v }}</td>{% endfor %}</tr>
+        {% empty %}<tr><td colspan="{{ columns|length }}" class="text-center text-muted p-4">No data for these filters.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% if row_count > 1000 %}<div class="card-footer text-muted">Showing the first 1,000 of {{ row_count }} rows - export CSV for the full list.</div>{% endif %}
+</div></div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{# Repeating product lines. Context: rows [{product, quantity, price}], line_errors, with_price (bool), price_field ('cost'|'price') #}
+{% if line_errors %}<div class="alert alert-danger"><ul class="mb-0">{% for e in line_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+<table class="table table-sm table-bordered">
+    <thead class="thead-light"><tr>
+        <th style="width:45%">Product</th><th style="width:15%">Quantity</th>
+        {% if with_price %}<th style="width:15%">Unit price</th><th class="text-right" style="width:15%">Line total</th>{% endif %}
+        <th style="width:5%"></th></tr></thead>
+    <tbody id="lines-body" data-price-field="{{ price_field|default:'price' }}">
+    {% for r in rows %}
+        <tr>
+            <td><select name="line_product" class="form-control js-product" data-url="/product/search/"><option value="{{ r.product.pk }}" selected>{{ r.product }}</option></select></td>
+            <td><div class="input-group"><input type="number" min="1" step="1" name="line_quantity" class="form-control line-qty" value="{{ r.quantity }}"><div class="input-group-append"><span class="input-group-text line-uom">{{ r.product.unit_of_measure }}</span></div></div></td>
+            {% if with_price %}<td><input type="number" min="0" step="0.01" name="line_price" class="form-control line-price" value="{{ r.price|default_if_none:'' }}"></td>
+            <td class="text-right align-middle line-total">0.00</td>{% endif %}
+            <td><button type="button" class="btn btn-sm btn-outline-danger remove-line"><i class="fas fa-times"></i></button></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    {% if with_price %}<tfoot><tr><th colspan="3" class="text-right">Subtotal</th><th class="text-right" id="lines-subtotal">0.00</th><th></th></tr></tfoot>{% endif %}
+</table>
+<button type="button" id="add-line" class="btn btn-sm btn-outline-primary"><i class="fas fa-plus"></i> Add line</button>
+<div class="d-inline-block ml-3" style="width: 300px;">
+    <div class="input-group input-group-sm">
+        <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-barcode"></i></span></div>
+        <input type="text" class="form-control js-barcode" id="line-barcode" placeholder="Scan barcode to add a line" autocomplete="off">
+    </div>
+</div>
+<script type="text/template" id="line-template">
+    <tr>
+        <td><select name="line_product" class="form-control js-product" data-url="/product/search/"></select></td>
+        <td><div class="input-group"><input type="number" min="1" step="1" name="line_quantity" class="form-control line-qty" value="1"><div class="input-group-append"><span class="input-group-text line-uom">-</span></div></div></td>
+        {% if with_price %}<td><input type="number" min="0" step="0.01" name="line_price" class="form-control line-price" value=""></td>
+        <td class="text-right align-middle line-total">0.00</td>{% endif %}
+        <td><button type="button" class="btn btn-sm btn-outline-danger remove-line"><i class="fas fa-times"></i></button></td>
+    </tr>
+</script>
+<script>
+    // a scanned barcode adds (or increments) a line
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#line-barcode').on('barcode:found', function (e, p) {
+            var $row = null;
+            $('#lines-body select.js-product').each(function () { if ($(this).val() == p.id) { $row = $(this).closest('tr'); } });
+            if ($row) { var q = $row.find('.line-qty'); q.val((parseInt(q.val()) || 0) + 1).trigger('input'); return; }
+            var $blank = $('#lines-body select.js-product').filter(function () { return !$(this).val(); }).first().closest('tr');
+            $row = $blank.length ? $blank : addLine();
+            var $sel = $row.find('select.js-product');
+            $sel.find('option').remove(); $sel.append(new Option(p.text, p.id, true, true)).trigger('change'); $sel.trigger('product:selected', [p]);
+        });
+    });
+</script>
