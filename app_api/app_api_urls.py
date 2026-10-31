@@ -15,7 +15,7 @@ router.register('transactions', views.TransactionViewSet)
 router.register('notifications', views.NotificationViewSet, basename='notification')
 
 urlpatterns = [
-    path('token/', TokenObtainPairView.as_view()),          # JWT access + refresh
+    path('token/', TokenObtainPairView.as_view()),
     path('token/refresh/', TokenRefreshView.as_view()),
     path('stock-in/', views.stock_in),
     path('stock-out/', views.stock_out),

@@ -5,7 +5,6 @@ from django.db import models
 
 
 class SalesOrder(models.Model):
-    """D7 Sales Orders (header)."""
     STATUS = [(s, s) for s in ['Draft', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled']]
 
     so_id = models.AutoField(primary_key=True)

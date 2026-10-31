@@ -3,7 +3,6 @@ from django.db import models
 
 
 class Return(models.Model):
-    """FR-15: purchase return or sales return, always linked to the original order."""
     TYPES = [('PURCHASE_RETURN', 'Purchase return'), ('SALES_RETURN', 'Sales return')]
     ORDER_TYPES = [('PURCHASE_ORDER', 'Purchase order'), ('SALES_ORDER', 'Sales order')]
     STATUS = [(s, s) for s in ['Pending', 'Approved', 'Completed', 'Cancelled']]

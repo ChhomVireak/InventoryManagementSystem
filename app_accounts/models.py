@@ -105,7 +105,6 @@ class User(AbstractBaseUser):
 
 
 class AuditLog(ImmutableModelMixin):
-    """FR-23 / NFR-06: append-only record of critical actions."""
 
     log_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='audit_logs')

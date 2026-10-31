@@ -14,10 +14,10 @@ import os
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 # Load .env (KEY=VALUE lines) for local runs; real environment variables win.
 _env_file = BASE_DIR / '.env'
 if _env_file.exists():
@@ -26,6 +26,9 @@ if _env_file.exists():
         if _line and not _line.startswith('#') and '=' in _line:
             _key, _value = _line.split('=', 1)
             os.environ.setdefault(_key.strip(), _value.strip().strip('"\''))
+            SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-key")
+            DEBUG = os.environ.get("DEBUG", "False") == "True"
+            ALLOWED_HOSTS = [h for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h]
 
 
 # Quick-start development settings - unsuitable for production
@@ -75,6 +78,7 @@ MIDDLEWARE = [
     'app_backend.middleware.LoginRequiredMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = 'inventory_management.urls'
@@ -118,6 +122,7 @@ else:
             'PASSWORD': os.environ.get('DB_PASSWORD', ''),
             'HOST': os.environ['DB_HOST'],
             'PORT': os.environ.get('DB_PORT', '5432'),
+            "OPTIONS": {"sslmode": "require"},
         }
     }
 

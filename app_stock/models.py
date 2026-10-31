@@ -6,7 +6,6 @@ from app_backend.utils import ImmutableModelMixin
 
 
 class Stock(models.Model):
-    """D4 Inventory - current quantity per product per warehouse."""
     stock_id = models.AutoField(primary_key=True)
     product = models.ForeignKey('app_product.Product', on_delete=models.PROTECT, related_name='stocks')
     warehouse = models.ForeignKey('app_warehouse.Warehouse', on_delete=models.PROTECT, related_name='stocks')

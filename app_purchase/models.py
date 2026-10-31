@@ -3,7 +3,6 @@ from django.db import models
 
 
 class PurchaseOrder(models.Model):
-    """D6 Purchase Orders (header)."""
     STATUS = [(s, s) for s in ['Draft', 'Sent', 'Partial', 'Received', 'Cancelled']]
 
     po_id = models.AutoField(primary_key=True)
